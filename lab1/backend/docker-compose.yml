@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  lab1-api:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+      args:
+        - NODE_ENV=development
+    environment:
+      - PORT=3000
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PW=postgres
+    expose:
+      - 3001
+    ports:
+      - 3200:3000
+    depends_on:
+      - ${PROJ_NAME}-postgres
+    links:
+      - ${PROJ_NAME}-postgres
+    volumes:
+      - ./:/home/node/app
+    command: npm run start
+
+
+  lab1-postgres:
+    image: postgres:11
+    restart: always
+
+    ports:
+      - 3201:5432
+
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_DB: ${PROJ_NAME}
