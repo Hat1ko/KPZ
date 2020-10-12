@@ -7,8 +7,8 @@ import { IQuestionsRepository } from '../core/interfaces/questions/repositories'
 export class DBLService {
     constructor(
       @Inject(TOPICS_REPOSITORY)
-      private readonly topicsRepository: ITopicsRepository,
+      public readonly topicsRepository: ITopicsRepository,
       @Inject(QUESTIONS_REPOSITORY)
-      private readonly questionsRepository: IQuestionsRepository,
+      public readonly questionsRepository: IQuestionsRepository,
     ) {}
 }

@@ -1,5 +1,6 @@
-import { BaseEntity, Column, Entity, PrimaryGeneratedColumn } from 'typeorm/index';
+import { BaseEntity, Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm/index';
 import { ITopic } from '../../../core/interfaces/topics/entities'
+import { Question } from '../../questions/entities';
 
 @Entity({ name: 'topic' })
 export class Topic extends BaseEntity implements ITopic {
@@ -11,4 +12,7 @@ export class Topic extends BaseEntity implements ITopic {
 
   @Column({ nullable: true })
   description?: string
+
+  @OneToMany(() => Question, question => question.topic)
+  questions?: Question[]
 }
