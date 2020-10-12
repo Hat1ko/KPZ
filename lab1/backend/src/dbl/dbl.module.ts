@@ -3,6 +3,7 @@ import { CustomDynamicModule, CustomModule } from '../shared/helpers/customModul
 import { DBLService } from './dbl.service'
 import { TopicsRepositoryProvider } from './topics/providers';
 import { ConfigModule } from '../shared/config';
+import { QuestionsRepositoryProvider } from './questions/providers';
 
 @Global()
 @CustomModule({
@@ -11,6 +12,7 @@ import { ConfigModule } from '../shared/config';
     DBLService,
 
     TopicsRepositoryProvider,
+    QuestionsRepositoryProvider,
   ],
 })
 export class DBLModule extends CustomDynamicModule {}
