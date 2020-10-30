@@ -9,6 +9,9 @@ export class TopicsService implements ITopicsService {
   constructor(private readonly dbl: DBLService) {}
 
   async create(dto: ITopicCreate): Promise<ITopic> {
+    const availableTopic = await this.dbl.topicsRepository.findOne({name: dto.name})
+    if(availableTopic) return availableTopic
+
     const topic = await this.dbl.topicsRepository.create({ ...dto })
     return await topic.save()
   }
