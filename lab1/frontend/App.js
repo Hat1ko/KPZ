@@ -106,20 +106,23 @@ const App: () => React$Node = () => {
     // topicUnit.name
     // topicUnit.description
     // topicUnit.id
-
     const status = topicsStatuses.find((topic) => topic.id === topicUnit.id);
-    // console.log(topicsStatuses)
 
     const questions = topicUnit.questions;
     // question.id
     // question.question
-    //question.hours
-    //question.dollarPerHour
-    //question.topicId
+    // question.hours
+    // question.dollarPerHour
+    // question.topicId
+
+    const changeTopicState = () => {
+      status.status = !status.status
+      setTopicsStatuses([...topicsStatuses.filter(topic => topic.id !== status.id), status])
+    }
 
     return (
       <View>
-        <TouchableOpacity style={styles.topicContainer}>
+        <TouchableOpacity style={styles.topicContainer} onPress={changeTopicState}>
           <Text>{topicUnit.name}</Text>
           <Text>></Text>
         </TouchableOpacity>
