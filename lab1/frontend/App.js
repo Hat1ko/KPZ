@@ -6,101 +6,162 @@
  * @flow strict-local
  */
 
-import React, {useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
+import {SwipeablePanel} from 'rn-swipeable-panel';
+
+let topicUnit = [];
 
 const App: () => React$Node = () => {
-  const topicUnit = [
-    {
-      id: 'topicId',
-      name: 'Topic name',
-      description: 'Topic description',
-      questions: [
-        {
-          id: 'questionId1',
-          question: 'Question',
-          hours: 5,
-          dollarPerHour: 2,
-          topicId: 'asdasdasd',
-        },
-        {
-          id: 'questionId2',
-          question: 'Question',
-          hours: 5,
-          dollarPerHour: 2,
-          topicId: 'asdasdasd',
-        },
-      ],
-    },
-    {
-      id: 'topicId1',
-      name: 'Topic name',
-      description: 'Topic description',
-      questions: [
-        {
-          id: 'questionId11',
-          question: 'Question',
-          hours: 5,
-          dollarPerHour: 4,
-          topicId: 'asdasdasd',
-        },
-        {
-          id: 'questionId21',
-          question: 'Question',
-          hours: 5,
-          dollarPerHour: 5,
-          topicId: 'asdasdasd',
-        },
-      ],
-    },
-  ];
+  const axios = require('axios');
 
-  const refresh = () => {};
+  const getTopics = () => {
+    axios.get('http://localhost:3200/api/topics').then((res) => {
+      topicUnit = res.data;
+    });
+  };
+
+  const addQuestion = (question) => {
+    axios
+      .post('http://localhost:3200/api/questions', question)
+      .then(refresh);
+  };
+
+  const [questionName, setQuestionName] = useState('');
+  const [questionPricePerHour, setQuestionPricePerHour] = useState('');
+  const [questionHours, setQuestionHours] = useState('');
+  const [topicName, setTopicName] = useState('');
+
+  const [addQuestionPanel, setAddQuestionPanel] = useState({
+    fullWidth: true,
+    onlyLarge: true,
+    closeOnTouchOutside: true,
+    onClose: () => closeQuestionPanel(),
+    onPressCloseButton: () => closeQuestionPanel(),
+    // ...or any prop you want
+    style: {
+      height: 450,
+    },
+  });
+  const [isQuestionPanelActive, setIsQuestionPanelActive] = useState(false);
+
+  const openAddQuestionPanel = () => {
+    setIsQuestionPanelActive(true);
+  };
+
+  const closeQuestionPanel = () => {
+    setQuestionName('');
+    setQuestionPricePerHour('');
+    setQuestionHours('');
+    setTopicName('');
+    setIsQuestionPanelActive(false);
+  };
+
+  const [summaryPanel, setSummaryPanel] = useState({
+    fullWidth: true,
+    onlyLarge: true,
+    closeOnTouchOutside: true,
+    onClose: () => closeSummaryPanel(),
+    onPressCloseButton: () => closeSummaryPanel(),
+    // ...or any prop you want
+    style: {
+      height: 450,
+    },
+  });
+  const [isSummaryPanelActive, setIsSummaryPanelActive] = useState(false);
+
+  const openSummaryPanel = () => {
+    setIsSummaryPanelActive(true);
+  };
+
+  const closeSummaryPanel = () => {
+    setIsSummaryPanelActive(false);
+  };
+
+  const getToggledQuestions = () => {
+    const statuses = [...questionsStatuses];
+    const ids = statuses
+      .filter((question) => question.status)
+      .map((question) => question.id);
+
+    const allQuestions = topicUnit.map((topic) => topic.questions).flat(1);
+    if (ids.length > 0) {
+      const questions = allQuestions.filter((question) =>
+        ids.includes(question.id),
+      );
+      return questions;
+    }
+    return [];
+  };
+  const getTotalHours = () => {
+    const arr = getToggledQuestions();
+    if (arr.length > 0) {
+      return getToggledQuestions().reduce(
+        (sum, question) => sum + question.hours,
+        0,
+      );
+    } else {
+      return 0;
+    }
+  };
+  const getMoneyToPay = () => {
+    const arr = getToggledQuestions();
+    if (arr.length > 0) {
+      return arr.reduce(
+        (sum, question) => sum + question.hours * question.dollarsPerHour,
+        0,
+      );
+    } else {
+      return 0;
+    }
+  };
 
   const [topicsStatuses, setTopicsStatuses] = useState([]);
   const [questionsStatuses, setQuestionsStatuses] = useState([]);
+  useEffect(() => {}, [questionsStatuses, topicsStatuses]);
 
-  // get logic
-  //
-  //
+  const refresh = () => {
+    // // getTopics();
+    topicUnit = []
+    axios
+      .get('http://localhost:3200/api/topics')
+      .then((res) => {
+        topicUnit = res.data;
+      })
+      .then(() => {
+        console.log('refresh');
 
-  if (topicsStatuses.length === 0 && topicUnit.length > 0) {
-    const statuses = topicUnit.map((topic) => {
-      return {id: topic.id, status: true};
-    });
+        const statuses = topicUnit.map((topic) => {
+          return {id: topic.id, status: true};
+        });
 
-    setTopicsStatuses([...topicsStatuses, ...statuses]);
-    console.log(topicsStatuses);
-    console.log(statuses);
-  }
+        setTopicsStatuses(statuses);
 
-  if (
-    questionsStatuses.length === 0 &&
-    topicUnit.map((topic) => topic.questions).reduce((a, b) => [a, b]).length >
-      0
-  ) {
-    let qStatuses = topicUnit.map((topic) => {
-      return [
-        ...topic.questions.map((question) => {
-          return {id: question.id, status: false};
-        }),
-      ];
-    });
-    qStatuses = qStatuses.flat(1)
-    setQuestionsStatuses([...questionsStatuses, ...qStatuses]);
-  }
-  // };
+        let qStatuses = topicUnit.map((topic) => {
+          return [
+            ...topic.questions.map((question) => {
+              return {id: question.id, status: false};
+            }),
+          ];
+        });
+        qStatuses = qStatuses.flat(1);
+        setQuestionsStatuses(qStatuses);
+      });
+  };
 
-  // refresh()
-
-  // console.log(questionsStatuses);
-  // console.log(topicsStatuses);
+  // const callback = useCallback(() => {
+  //   refresh();
+  // }, []);
+  // useEffect(() => {
+  //   callback();
+  // }, [callback]);
 
   const TopicRender = ({topicUnit: topicUnit}) => {
     // topicUnit.name
@@ -116,13 +177,18 @@ const App: () => React$Node = () => {
     // question.topicId
 
     const changeTopicState = () => {
-      status.status = !status.status
-      setTopicsStatuses([...topicsStatuses.filter(topic => topic.id !== status.id), status])
-    }
+      status.status = !status.status;
+      setTopicsStatuses([
+        ...topicsStatuses.filter((topic) => topic.id !== status.id),
+        status,
+      ]);
+    };
 
     return (
       <View>
-        <TouchableOpacity style={styles.topicContainer} onPress={changeTopicState}>
+        <TouchableOpacity
+          style={styles.topicContainer}
+          onPress={changeTopicState}>
           <Text>{topicUnit.name}</Text>
           <Text>></Text>
         </TouchableOpacity>
@@ -144,13 +210,7 @@ const App: () => React$Node = () => {
             let status = {id: question.id, status: false};
             if (statuses.length > 0) {
               status = statuses.find((s) => s.id === question.id);
-              console.log(status)
-              console.log(statuses)
-              console.log(questionsStatuses)
             }
-
-            console.log(status)
-
             return (
               <>
                 <TouchableOpacity
@@ -159,7 +219,7 @@ const App: () => React$Node = () => {
                   <View style={{width: '90%', flexDirection: 'row'}}>
                     <Text style={{width: '70%'}}>{question.question}</Text>
                     <Text style={{width: '15%'}}>
-                      {`${question.dollarPerHour}$`}
+                      {`${question.dollarsPerHour}$`}
                     </Text>
                     <Text style={{width: '15%'}}>{question.hours}</Text>
                   </View>
@@ -215,19 +275,140 @@ const App: () => React$Node = () => {
           <TouchableOpacity style={styles.buttonContainer} onPress={refresh}>
             <Text style={styles.buttonTitle}>Refresh</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.buttonContainer}>
+          <TouchableOpacity
+            style={styles.buttonContainer}
+            onPress={openAddQuestionPanel}>
             <Text style={styles.buttonTitle}>Add question</Text>
           </TouchableOpacity>
         </View>
 
-        <ScrollView style={{height: '80%', borderRadius: 35}}>
+        <ScrollView style={{height: '77.5%', borderRadius: 35}}>
           <View style={{height: 15}} />
 
           {topicUnit.map((topic) => (
             <TopicRender topicUnit={topic} />
           ))}
         </ScrollView>
+        <TouchableOpacity
+          style={{
+            marginTop: 30,
+            backgroundColor: 'black',
+            paddingHorizontal: 10,
+            borderRadius: 50,
+            width: 150,
+            alignItems: 'center',
+            alignSelf: 'center',
+          }}
+          onPress={openSummaryPanel}>
+          <Text
+            style={{
+              color: 'white',
+              paddingVertical: 10,
+              paddingHorizontal: 15,
+            }}>
+            Summary
+          </Text>
+        </TouchableOpacity>
       </View>
+
+      <SwipeablePanel {...addQuestionPanel} isActive={isQuestionPanelActive}>
+        <View style={{marginHorizontal: 16, marginTop: 5, height: '100%'}}>
+          <Text style={{alignSelf: 'center', fontWeight: '600', fontSize: 16}}>
+            Add question
+          </Text>
+          <View style={styles.questionAddingContainer}>
+            <Text style={styles.fieldTitle}>Question</Text>
+            <TextInput
+              style={styles.questionTextInput}
+              onChangeText={(text) => setQuestionName(text)}
+            />
+
+            <Text style={styles.fieldTitle}>Price per Hour</Text>
+            <TextInput
+              style={styles.questionTextInput}
+              keyboardType="decimal-pad"
+              onChangeText={(text) => setQuestionPricePerHour(text)}
+            />
+
+            <Text style={styles.fieldTitle}>
+              Hours needed for implementation
+            </Text>
+            <TextInput
+              style={styles.questionTextInput}
+              keyboardType="decimal-pad"
+              onChangeText={(text) => setQuestionHours(text)}
+            />
+
+            <Text style={styles.fieldTitle}>Topic name</Text>
+            <TextInput
+              style={styles.questionTextInput}
+              onChangeText={(text) => setTopicName(text)}
+            />
+          </View>
+          <TouchableOpacity
+            style={{
+              marginTop: 30,
+              backgroundColor: 'black',
+              paddingHorizontal: 10,
+              borderRadius: 50,
+              width: 150,
+              alignItems: 'center',
+              alignSelf: 'center',
+            }}
+            onPress={() => {
+              const question = {
+                question: questionName,
+                hours: +questionHours,
+                dollarsPerHour: +questionPricePerHour,
+                topicName: topicName,
+              };
+              addQuestion(question);
+              closeQuestionPanel();
+            }}>
+            <Text
+              style={{
+                color: 'white',
+                paddingVertical: 10,
+                paddingHorizontal: 15,
+              }}>
+              Add
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </SwipeablePanel>
+
+      {/*-----------------------------------------------------------------------*/}
+      {/*-----------------------------------------------------------------------*/}
+      {/*-----------------------------------------------------------------------*/}
+      {/*-----------------------------------------------------------------------*/}
+      {/*-----------------------------------------------------------------------*/}
+      {/*-----------------------------------------------------------------------*/}
+      {/*-----------------------------------------------------------------------*/}
+      {/*-----------------------------------------------------------------------*/}
+
+      <SwipeablePanel {...summaryPanel} isActive={isSummaryPanelActive}>
+        <View style={{marginHorizontal: 16, marginTop: 5, height: '150%'}}>
+          <Text style={{alignSelf: 'center', fontWeight: '600', fontSize: 16}}>
+            Summary
+          </Text>
+          <View
+            style={{
+              alignItems: 'center',
+              flexDirection: 'column',
+              justifyContent: 'space-around',
+              flex: 1,
+            }}>
+            <Text style={{fontSize: 16}}>
+              The development of your website will cost
+            </Text>
+            <Text style={{fontSize: 16}}>{`${getMoneyToPay()}$`}</Text>
+            <Text style={{fontSize: 16}}>
+              Total time that will be used for development
+            </Text>
+            <Text style={{fontSize: 16}}>{`${getTotalHours()} hours`}</Text>
+          </View>
+        </View>
+      </SwipeablePanel>
     </View>
   );
 };
@@ -288,6 +469,23 @@ const styles = StyleSheet.create({
     },
 
     flexDirection: 'row',
+  },
+
+  questionAddingContainer: {
+    marginTop: 10,
+    // height: 600,
+    // backgroundColor: 'yellow'
+  },
+  questionTextInput: {
+    marginVertical: 7,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    backgroundColor: '#f4f4f4',
+    borderRadius: 10,
+  },
+  fieldTitle: {
+    fontWeight: '500',
+    color: '#b6b6b6',
   },
 });
 

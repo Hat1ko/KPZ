@@ -1,4 +1,4 @@
-import { Controller, Get, Inject, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Inject, Param, Post } from '@nestjs/common';
 import { QUESTIONS_SERVICE } from '../../../core/providers/providers.const';
 import { IQuestionsService } from '../../../core/interfaces/questions/services';
 import { QuestionCreateDto, QuestionDto } from '../dtos';
@@ -22,7 +22,7 @@ export class QuestionsController {
   }
 
   @Post()
-  async create(dto: QuestionCreateDto): Promise<QuestionDto> {
+  async create(@Body() dto: QuestionCreateDto): Promise<QuestionDto> {
     return await this.questionsService.create(dto) as QuestionDto
   }
 
