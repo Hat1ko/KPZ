@@ -31,7 +31,7 @@ const App: () => React$Node = () => {
   const addQuestion = (question) => {
     axios
       .post('http://localhost:3200/api/questions', question)
-      .then(refresh);
+      .then();
   };
 
   const [questionName, setQuestionName] = useState('');
@@ -129,7 +129,7 @@ const App: () => React$Node = () => {
 
   const refresh = () => {
     // // getTopics();
-    topicUnit = []
+    // topicUnit = []
     axios
       .get('http://localhost:3200/api/topics')
       .then((res) => {
@@ -156,12 +156,6 @@ const App: () => React$Node = () => {
       });
   };
 
-  // const callback = useCallback(() => {
-  //   refresh();
-  // }, []);
-  // useEffect(() => {
-  //   callback();
-  // }, [callback]);
 
   const TopicRender = ({topicUnit: topicUnit}) => {
     // topicUnit.name
