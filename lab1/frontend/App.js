@@ -187,7 +187,7 @@ const App: () => React$Node = () => {
           <Text>></Text>
         </TouchableOpacity>
 
-        {status.status &&
+        {status && status.status &&
           questions.map((question) => {
             const changeStatus = () => {
               let statuses = [...questionsStatuses];
@@ -219,7 +219,7 @@ const App: () => React$Node = () => {
                   </View>
 
                   <View style={{flexDirection: 'row', alignItems: 'center'}}>
-                    {status.status && (
+                    {status && status.status && (
                       <View
                         style={[
                           {
@@ -234,7 +234,7 @@ const App: () => React$Node = () => {
                       />
                     )}
 
-                    {!status.status && (
+                    {status && !status.status && (
                       <View
                         style={[
                           {
